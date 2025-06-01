@@ -24,6 +24,7 @@ const RegisterForm: React.FC = () => {
       setError(null);
       setLoading(true);
       await registerUser(data.email, data.password);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
       console.error('Registration error:', err);
