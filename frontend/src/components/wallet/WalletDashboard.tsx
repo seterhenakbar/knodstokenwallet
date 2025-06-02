@@ -42,6 +42,9 @@ const WalletDashboard: React.FC = () => {
   if (error) {
     return (
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div className="mb-2 text-sm">
+          <strong>Alpha Release:</strong> This is an alpha release of Knods Token Wallet. Errors or missing data are expected. Please report issues at knods@labtekindie.com.
+        </div>
         <strong className="font-bold">Error!</strong>
         <span className="block sm:inline"> {error}</span>
       </div>

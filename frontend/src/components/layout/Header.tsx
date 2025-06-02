@@ -10,8 +10,9 @@ const Header: React.FC = () => {
   return (
     <header className="bg-blue-600 text-white shadow-md">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold">
+        <Link href="/" className="text-xl font-bold flex items-center">
           Knods Token Wallet
+          <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-sm font-bold ml-2">ALPHA</span>
         </Link>
         
         <nav>

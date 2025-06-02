@@ -30,13 +30,7 @@ export default function Home() {
         </div>
         
         {/* Features Section */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">Secure Authentication</h2>
-            <p className="text-gray-600">
-              Your wallet is protected with industry-standard security practices and JWT authentication.
-            </p>
-          </div>
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-gray-800 mb-3">Real-time Balance</h2>
             <p className="text-gray-600">
