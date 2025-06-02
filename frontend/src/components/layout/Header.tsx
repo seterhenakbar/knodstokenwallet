@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import React from "react";
+import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();

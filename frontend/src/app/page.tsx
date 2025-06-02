@@ -1,10 +1,7 @@
-'use client';
+import Layout from "@/components/layout/Layout";
+import Link from "next/link";
 
-import React from 'react';
-import Link from 'next/link';
-import Layout from '@/components/layout/Layout';
-
-export default function HomePage() {
+export default function Home() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">

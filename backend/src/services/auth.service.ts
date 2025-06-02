@@ -4,19 +4,14 @@ import config from '../config/config';
 import { User, UserCreate, UserLogin, PasswordReset } from '../models/user.model';
 import { createUser, getUserByEmail, updateUserPassword } from './airtable.service';
 
-export const register = async (userData: UserCreate): Promise<User | null> => {
-  try {
-    const existingUser = await getUserByEmail(userData.email);
-    if (existingUser) {
-      return null; // User already exists
-    }
-    
-    const newUser = await createUser(userData);
-    return newUser;
-  } catch (error) {
-    console.error('Error registering user:', error);
-    return null;
+export const register = async (userData: UserCreate): Promise<User> => {
+  const existingUser = await getUserByEmail(userData.email);
+  if (existingUser) {
+    throw new Error('User already exists');
   }
+  
+  const newUser = await createUser(userData);
+  return newUser
 };
 
 export const login = async (credentials: UserLogin): Promise<{ user: User; token: string } | null> => {
@@ -25,6 +20,10 @@ export const login = async (credentials: UserLogin): Promise<{ user: User; token
     if (!user || !user.password) {
       return null; // User not found or password not set
     }
+
+    console.log('user', user)
+    console.log('credentials', credentials.password)
+    console.log('password', user.password)
     
     const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
     if (!isPasswordValid) {

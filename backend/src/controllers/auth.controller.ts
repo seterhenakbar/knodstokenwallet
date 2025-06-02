@@ -7,15 +7,11 @@ export const registerUser = async (req: Request, res: Response) => {
     const userData: UserCreate = req.body;
     
     if (!userData.email || !userData.password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+      res.status(400).json({ message: 'Email and password are required' });
     }
     
     const user = await register(userData);
-    if (!user) {
-      return res.status(409).json({ message: 'User already exists' });
-    }
-    
-    return res.status(201).json({
+    res.status(201).json({
       message: 'User registered successfully',
       user: {
         id: user.id,
@@ -24,7 +20,7 @@ export const registerUser = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error in registerUser controller:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 

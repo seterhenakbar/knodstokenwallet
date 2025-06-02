@@ -54,7 +54,7 @@ const WalletDashboard: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold text-gray-700 mb-2">Your KND Balance</h2>
         <div className="flex items-baseline">
-          <span className="text-4xl font-bold text-blue-600">{wallet?.balance.toLocaleString()}</span>
+          <span className="text-4xl font-bold text-blue-600">{wallet?.balance ? wallet.balance.toLocaleString() : '0'}</span>
           <span className="ml-2 text-gray-500">KND</span>
         </div>
         <p className="text-sm text-gray-500 mt-2">
@@ -96,7 +96,7 @@ const WalletDashboard: React.FC = () => {
                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-right ${
                       transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {transaction.amount >= 0 ? '+' : ''}{transaction.amount.toLocaleString()} KND
+                      {transaction.amount >= 0 ? '+' : ''}{transaction.amount} KND
                     </td>
                   </tr>
                 ))}
