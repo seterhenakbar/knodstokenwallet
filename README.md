@@ -18,7 +18,7 @@ A full-stack web application for tracking KND token balances and transaction his
 - Airtable.js SDK for database integration
 
 ### Frontend
-- Next.js 14+
+- Next.js 15+
 - TailwindCSS
 - React Hook Form
 - Axios
