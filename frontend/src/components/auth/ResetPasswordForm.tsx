@@ -27,6 +27,7 @@ const ResetPasswordForm: React.FC = () => {
       setLoading(true);
       await resetPassword(data.email, data.newPassword);
       setSuccess('Password reset successful. You can now login with your new password.');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.message || 'Password reset failed. Please try again.');
       console.error('Password reset error:', err);
