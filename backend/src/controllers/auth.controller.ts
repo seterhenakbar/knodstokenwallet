@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import { register, login, resetPassword } from '../services/auth.service';
+import { register, login, resetPassword, requestPasswordReset, confirmPasswordReset } from '../services/auth.service';
 import { UserCreate, UserLogin, PasswordReset } from '../models/user.model';
+import { PasswordResetRequest, PasswordResetConfirm } from '../models/passwordReset.model';
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -67,6 +68,54 @@ export const resetUserPassword = async (req: Request, res: Response) => {
     return res.status(200).json({ message: 'Password reset successful' });
   } catch (error) {
     console.error('Error in resetUserPassword controller:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const requestPasswordResetEmail = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    
+    const success = await requestPasswordReset(email);
+    
+    return res.status(200).json({ 
+      message: 'If your email exists in our system, you will receive a password reset link shortly' 
+    });
+  } catch (error) {
+    console.error('Error in requestPasswordResetEmail controller:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const confirmPasswordResetWithToken = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const { newPassword, confirmPassword } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({ message: 'Token is required' });
+    }
+    
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({ message: 'New password and confirmation are required' });
+    }
+    
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'Passwords do not match' });
+    }
+    
+    const success = await confirmPasswordReset(token, newPassword);
+    if (!success) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+    
+    return res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Error in confirmPasswordResetWithToken controller:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 };

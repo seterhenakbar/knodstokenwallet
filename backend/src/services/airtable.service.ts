@@ -2,7 +2,9 @@ import base from '../config/airtable';
 import config from '../config/config';
 import { User, UserCreate, UserInDB } from '../models/user.model';
 import { Wallet, Transaction, WalletInDB, TransactionInDB } from '../models/wallet.model';
+import { PasswordResetToken } from '../models/passwordReset.model';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
 const getFieldMapping = async (tableId: string) => {
   try {
@@ -253,4 +255,182 @@ const getMockTransactions = (userEmail: string): Transaction[] => {
       description: 'Bonus reward'
     }
   ];
+};
+
+export const generatePasswordResetToken = (): string => {
+  return crypto.randomBytes(32).toString('hex');
+};
+
+export const createPasswordResetToken = async (email: string): Promise<PasswordResetToken | null> => {
+  try {
+    if (!config.airtable.tables.passwordResetTokens.id) {
+      console.error('Password reset tokens table ID not configured');
+      return null;
+    }
+    
+    await invalidateExistingTokens(email);
+    
+    const tokensTable = base(config.airtable.tables.passwordResetTokens.id);
+    const token = generatePasswordResetToken();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    
+    const records = await tokensTable.create([
+      {
+        fields: {
+          [config.airtable.tables.passwordResetTokens.fields.token]: token,
+          [config.airtable.tables.passwordResetTokens.fields.email]: email,
+          [config.airtable.tables.passwordResetTokens.fields.expiresAt]: expiresAt.toISOString(),
+          [config.airtable.tables.passwordResetTokens.fields.used]: false
+        }
+      }
+    ]);
+    
+    return {
+      id: records[0].id,
+      token,
+      email,
+      expiresAt,
+      used: false
+    };
+  } catch (error) {
+    console.error('Error creating password reset token:', error);
+    return null;
+  }
+};
+
+export const getPasswordResetToken = async (token: string): Promise<PasswordResetToken | null> => {
+  try {
+    if (!config.airtable.tables.passwordResetTokens.id) {
+      console.error('Password reset tokens table ID not configured');
+      return null;
+    }
+    
+    const tokensTable = base(config.airtable.tables.passwordResetTokens.id);
+    const tokenField = config.airtable.tables.passwordResetTokens.fields.token;
+    
+    const records = await tokensTable.select({
+      filterByFormula: `{${tokenField}} = "${token}"`
+    }).firstPage();
+    
+    if (records && records.length > 0) {
+      const tokenRecord = records[0];
+      const expiresAt = new Date(tokenRecord.fields[config.airtable.tables.passwordResetTokens.fields.expiresAt] as string);
+      const used = tokenRecord.fields[config.airtable.tables.passwordResetTokens.fields.used] as boolean;
+      const email = tokenRecord.fields[config.airtable.tables.passwordResetTokens.fields.email] as string;
+      
+      if (expiresAt < new Date()) {
+        return null;
+      }
+      
+      if (used) {
+        return null;
+      }
+      
+      return {
+        id: tokenRecord.id,
+        token,
+        email,
+        expiresAt,
+        used
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting password reset token:', error);
+    return null;
+  }
+};
+
+export const markTokenAsUsed = async (token: string): Promise<boolean> => {
+  try {
+    if (!config.airtable.tables.passwordResetTokens.id) {
+      console.error('Password reset tokens table ID not configured');
+      return false;
+    }
+    
+    const tokensTable = base(config.airtable.tables.passwordResetTokens.id);
+    const tokenField = config.airtable.tables.passwordResetTokens.fields.token;
+    
+    const records = await tokensTable.select({
+      filterByFormula: `{${tokenField}} = "${token}"`
+    }).firstPage();
+    
+    if (records && records.length > 0) {
+      await tokensTable.update([
+        {
+          id: records[0].id,
+          fields: {
+            [config.airtable.tables.passwordResetTokens.fields.used]: true
+          }
+        }
+      ]);
+      
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error marking token as used:', error);
+    return false;
+  }
+};
+
+export const invalidateExistingTokens = async (email: string): Promise<boolean> => {
+  try {
+    if (!config.airtable.tables.passwordResetTokens.id) {
+      console.error('Password reset tokens table ID not configured');
+      return false;
+    }
+    
+    const tokensTable = base(config.airtable.tables.passwordResetTokens.id);
+    const emailField = config.airtable.tables.passwordResetTokens.fields.email;
+    
+    const records = await tokensTable.select({
+      filterByFormula: `{${emailField}} = "${email}"`
+    }).firstPage();
+    
+    if (records && records.length > 0) {
+      const updates = records.map(record => ({
+        id: record.id,
+        fields: {
+          [config.airtable.tables.passwordResetTokens.fields.used]: true
+        }
+      }));
+      
+      await tokensTable.update(updates);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error invalidating existing tokens:', error);
+    return false;
+  }
+};
+
+export const deleteExpiredTokens = async (): Promise<boolean> => {
+  try {
+    if (!config.airtable.tables.passwordResetTokens.id) {
+      console.error('Password reset tokens table ID not configured');
+      return false;
+    }
+    
+    const tokensTable = base(config.airtable.tables.passwordResetTokens.id);
+    const expiresAtField = config.airtable.tables.passwordResetTokens.fields.expiresAt;
+    const now = new Date().toISOString();
+    
+    const records = await tokensTable.select({
+      filterByFormula: `{${expiresAtField}} < "${now}"`
+    }).firstPage();
+    
+    if (records && records.length > 0) {
+      const recordIds = records.map(record => record.id);
+      await tokensTable.destroy(recordIds);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting expired tokens:', error);
+    return false;
+  }
 };

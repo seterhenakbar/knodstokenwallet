@@ -2,7 +2,16 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from '../config/config';
 import { User, UserCreate, UserLogin, PasswordReset } from '../models/user.model';
-import { createUser, getUserByEmail, updateUserPassword } from './airtable.service';
+import { PasswordResetRequest, PasswordResetConfirm } from '../models/passwordReset.model';
+import { 
+  createUser, 
+  getUserByEmail, 
+  updateUserPassword,
+  createPasswordResetToken,
+  getPasswordResetToken,
+  markTokenAsUsed
+} from './airtable.service';
+import { sendPasswordResetEmail } from './email.service';
 
 export const register = async (userData: UserCreate): Promise<User> => {
   const existingUser = await getUserByEmail(userData.email);
@@ -49,6 +58,28 @@ export const login = async (credentials: UserLogin): Promise<{ user: User; token
   }
 };
 
+export const requestPasswordReset = async (email: string): Promise<boolean> => {
+  try {
+    const user = await getUserByEmail(email);
+    if (!user) {
+      console.log(`Password reset requested for non-existent email: ${email}`);
+      return true;
+    }
+    
+    const resetToken = await createPasswordResetToken(email);
+    if (!resetToken) {
+      console.error('Failed to create password reset token');
+      return false;
+    }
+    
+    const emailSent = await sendPasswordResetEmail(email, resetToken.token);
+    return emailSent;
+  } catch (error) {
+    console.error('Error requesting password reset:', error);
+    return false;
+  }
+};
+
 export const resetPassword = async (resetData: PasswordReset): Promise<boolean> => {
   try {
     const user = await getUserByEmail(resetData.email);
@@ -63,6 +94,38 @@ export const resetPassword = async (resetData: PasswordReset): Promise<boolean> 
     return updated;
   } catch (error) {
     console.error('Error resetting password:', error);
+    return false;
+  }
+};
+
+export const confirmPasswordReset = async (token: string, newPassword: string): Promise<boolean> => {
+  try {
+    const resetToken = await getPasswordResetToken(token);
+    if (!resetToken) {
+      console.error('Invalid or expired password reset token');
+      return false;
+    }
+    
+    const user = await getUserByEmail(resetToken.email);
+    if (!user || !user.id) {
+      console.error('User not found for password reset token');
+      return false;
+    }
+    
+    const saltRounds = 10;
+    const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+    
+    const updated = await updateUserPassword(user.id, newPasswordHash);
+    if (!updated) {
+      console.error('Failed to update user password');
+      return false;
+    }
+    
+    await markTokenAsUsed(token);
+    
+    return true;
+  } catch (error) {
+    console.error('Error confirming password reset:', error);
     return false;
   }
 };
