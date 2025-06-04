@@ -36,12 +36,12 @@ const config = {
         }
       },
       passwordResetTokens: {
-        id: process.env.PASSWORD_RESET_TOKENS_TABLE_ID || '',
+        id: process.env.PASSWORD_RESET_TOKENS_TABLE_ID || 'tblwQxlszel6C2580',
         fields: {
-          token: process.env.RESET_TOKEN_FIELD_ID || '',
-          email: process.env.RESET_EMAIL_FIELD_ID || '',
-          expiresAt: process.env.RESET_EXPIRES_AT_FIELD_ID || '',
-          used: process.env.RESET_USED_FIELD_ID || ''
+          token: process.env.RESET_TOKEN_FIELD_ID || 'fldOGsVCkdFd6tWqL',
+          email: process.env.RESET_EMAIL_FIELD_ID || 'fldtKt6siB9hJPrKu',
+          expiresAt: process.env.RESET_EXPIRES_AT_FIELD_ID || 'flduh7V6EKAzFGSNj',
+          used: process.env.RESET_USED_FIELD_ID || 'fldVcWlrksnHjwv8C'
         }
       }
     }
