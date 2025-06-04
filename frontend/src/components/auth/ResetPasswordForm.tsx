@@ -6,13 +6,16 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
 interface ResetPasswordFormData {
-  email: string;
   newPassword: string;
   confirmPassword: string;
 }
 
-const ResetPasswordForm: React.FC = () => {
-  const { resetPassword } = useAuth();
+interface ResetPasswordFormProps {
+  token: string;
+}
+
+const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token }) => {
+  const { resetPasswordWithToken } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -25,7 +28,10 @@ const ResetPasswordForm: React.FC = () => {
       setError(null);
       setSuccess(null);
       setLoading(true);
-      await resetPassword(data.email, data.newPassword);
+      await resetPasswordWithToken(token, {
+        newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword
+      });
       setSuccess('Password reset successful. You can now login with your new password.');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -53,29 +59,7 @@ const ResetPasswordForm: React.FC = () => {
       )}
       
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
-            }`}
-            placeholder="your@email.com"
-            {...register('email', { 
-              required: 'Email is required',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Invalid email address'
-              }
-            })}
-          />
-          {errors.email && (
-            <p className="mt-1 text-red-500 text-sm">{errors.email.message}</p>
-          )}
-        </div>
+
         
         <div className="mb-4">
           <label htmlFor="newPassword" className="block text-gray-700 font-medium mb-2">

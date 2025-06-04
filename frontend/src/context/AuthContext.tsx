@@ -16,6 +16,8 @@ interface AuthContextType {
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   resetPassword: (email: string, newPassword: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetPasswordWithToken: (token: string, data: { newPassword: string; confirmPassword: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,8 +88,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      setLoading(true);
+      await authService.requestPasswordReset({ email });
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPasswordWithToken = async (token: string, data: { newPassword: string; confirmPassword: string }) => {
+    try {
+      setLoading(true);
+      await authService.resetPasswordWithToken(token, data);
+      router.push('/login');
+    } catch (error) {
+      console.error('Password reset with token error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, resetPassword }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      register, 
+      logout, 
+      resetPassword,
+      requestPasswordReset,
+      resetPasswordWithToken
+    }}>
       {children}
     </AuthContext.Provider>
   );

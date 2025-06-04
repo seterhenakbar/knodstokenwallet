@@ -15,6 +15,15 @@ export interface ResetPasswordData {
   newPassword: string;
 }
 
+export interface ForgotPasswordData {
+  email: string;
+}
+
+export interface ResetPasswordWithTokenData {
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface AuthResponse {
   user: {
     id: string;
@@ -35,6 +44,14 @@ export const login = async (data: LoginData): Promise<AuthResponse> => {
 
 export const resetPassword = async (data: ResetPasswordData): Promise<void> => {
   await api.post('/auth/reset-password', data);
+};
+
+export const requestPasswordReset = async (data: ForgotPasswordData): Promise<void> => {
+  await api.post('/auth/forgot-password', data);
+};
+
+export const resetPasswordWithToken = async (token: string, data: ResetPasswordWithTokenData): Promise<void> => {
+  await api.post(`/auth/reset-password/${token}`, data);
 };
 
 export const logout = (): void => {
