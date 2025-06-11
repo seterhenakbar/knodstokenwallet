@@ -3,9 +3,9 @@ import jwt from 'jsonwebtoken';
 import config from '../config/config';
 import { User, UserCreate, UserLogin, PasswordReset } from '../models/user.model';
 import { PasswordResetRequest, PasswordResetConfirm } from '../models/passwordReset.model';
-import { 
-  createUser, 
-  getUserByEmail, 
+import {
+  createUser,
+  getUserByEmail,
   updateUserPassword,
   createPasswordResetToken,
   getPasswordResetToken,
@@ -18,7 +18,7 @@ export const register = async (userData: UserCreate): Promise<User> => {
   if (existingUser) {
     throw new Error('User already exists');
   }
-  
+
   const newUser = await createUser(userData);
   return newUser
 };
@@ -33,18 +33,18 @@ export const login = async (credentials: UserLogin): Promise<{ user: User; token
     console.log('user', user)
     console.log('credentials', credentials.password)
     console.log('password', user.password)
-    
+
     const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
     if (!isPasswordValid) {
       return null; // Invalid password
     }
-    
+
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       config.jwtSecret,
       { expiresIn: '1h' }
     );
-    
+
     return {
       user: {
         id: user.id,
@@ -59,25 +59,18 @@ export const login = async (credentials: UserLogin): Promise<{ user: User; token
 };
 
 export const requestPasswordReset = async (email: string): Promise<boolean> => {
-  try {
-    const user = await getUserByEmail(email);
-    if (!user) {
-      console.log(`Password reset requested for non-existent email: ${email}`);
-      return true;
-    }
-    
-    const resetToken = await createPasswordResetToken(email);
-    if (!resetToken) {
-      console.error('Failed to create password reset token');
-      return false;
-    }
-    
-    const emailSent = await sendPasswordResetEmail(email, resetToken.token);
-    return emailSent;
-  } catch (error) {
-    console.error('Error requesting password reset:', error);
-    return false;
+  const user = await getUserByEmail(email);
+  if (!user) {
+    throw new Error(`Password reset requested for non-existent email: ${email}`)
   }
+
+  const resetToken = await createPasswordResetToken(email);
+  if (!resetToken) {
+    throw new Error(`Failed to create password reset token for email: ${email}`)
+  }
+
+  const emailSent = await sendPasswordResetEmail(email, resetToken.token);
+  return emailSent;
 };
 
 export const resetPassword = async (resetData: PasswordReset): Promise<boolean> => {
@@ -86,10 +79,10 @@ export const resetPassword = async (resetData: PasswordReset): Promise<boolean> 
     if (!user || !user.id) {
       return false; // User not found
     }
-    
+
     const saltRounds = 10;
     const newPasswordHash = await bcrypt.hash(resetData.newPassword, saltRounds);
-    
+
     const updated = await updateUserPassword(user.id, newPasswordHash);
     return updated;
   } catch (error) {
@@ -105,24 +98,24 @@ export const confirmPasswordReset = async (token: string, newPassword: string): 
       console.error('Invalid or expired password reset token');
       return false;
     }
-    
+
     const user = await getUserByEmail(resetToken.email);
     if (!user || !user.id) {
       console.error('User not found for password reset token');
       return false;
     }
-    
+
     const saltRounds = 10;
     const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
-    
+
     const updated = await updateUserPassword(user.id, newPasswordHash);
     if (!updated) {
       console.error('Failed to update user password');
       return false;
     }
-    
+
     await markTokenAsUsed(token);
-    
+
     return true;
   } catch (error) {
     console.error('Error confirming password reset:', error);
