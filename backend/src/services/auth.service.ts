@@ -30,10 +30,6 @@ export const login = async (credentials: UserLogin): Promise<{ user: User; token
       return null; // User not found or password not set
     }
 
-    console.log('user', user)
-    console.log('credentials', credentials.password)
-    console.log('password', user.password)
-
     const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
     if (!isPasswordValid) {
       return null; // Invalid password

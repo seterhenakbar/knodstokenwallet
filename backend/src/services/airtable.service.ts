@@ -277,10 +277,10 @@ export const createPasswordResetToken = async (email: string): Promise<PasswordR
     const records = await tokensTable.create([
       {
         fields: {
-          [config.airtable.tables.passwordResetTokens.fields.token]: token,
-          [config.airtable.tables.passwordResetTokens.fields.email]: email,
-          [config.airtable.tables.passwordResetTokens.fields.expiresAt]: expiresAt.toISOString(),
-          [config.airtable.tables.passwordResetTokens.fields.used]: false
+          token,
+          email,
+          expiresAt: expiresAt.toISOString(),
+          used: false
         }
       }
     ]);
@@ -314,9 +314,9 @@ export const getPasswordResetToken = async (token: string): Promise<PasswordRese
     
     if (records && records.length > 0) {
       const tokenRecord = records[0];
-      const expiresAt = new Date(tokenRecord.fields[config.airtable.tables.passwordResetTokens.fields.expiresAt] as string);
-      const used = tokenRecord.fields[config.airtable.tables.passwordResetTokens.fields.used] as boolean;
-      const email = tokenRecord.fields[config.airtable.tables.passwordResetTokens.fields.email] as string;
+      const expiresAt = new Date(tokenRecord.fields.expiresAt as string);
+      const used = tokenRecord.fields.used as boolean;
+      const email = tokenRecord.fields.email as string;
       
       if (expiresAt < new Date()) {
         return null;

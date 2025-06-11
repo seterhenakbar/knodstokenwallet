@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
 import Layout from '@/components/layout/Layout';
 
 export default function ResetPasswordPage() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const params = useParams<{ token: string }>();
+  const { token } = params;
 
   if (!token) {
     return (
