@@ -24,6 +24,7 @@ const ForgotPasswordForm: React.FC = () => {
       setLoading(true);
       await requestPasswordReset(data.email);
       setSuccess('If your email exists in our system, you will receive a password reset link shortly.');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError('An error occurred while processing your request. Please try again later.');
       console.error('Password reset request error:', err);
