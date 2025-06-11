@@ -36,7 +36,6 @@ export const sendPasswordResetEmail = async (
     };
 
     const response = await client.messages.send({ message });
-    console.log(response)
     
     if(response instanceof AxiosError){
       console.error('Error sending password reset email:', response);
