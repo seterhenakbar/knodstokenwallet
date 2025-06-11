@@ -314,9 +314,9 @@ export const getPasswordResetToken = async (token: string): Promise<PasswordRese
     
     if (records && records.length > 0) {
       const tokenRecord = records[0];
-      const expiresAt = new Date(tokenRecord.fields.expiresAt as string);
-      const used = tokenRecord.fields.used as boolean;
-      const email = tokenRecord.fields.email as string;
+      const expiresAt = new Date(tokenRecord.fields['expiresAt'] as string);
+      const used = tokenRecord.fields['used'] as boolean;
+      const email = tokenRecord.fields['email'] as string;
       
       if (expiresAt < new Date()) {
         return null;
@@ -431,6 +431,31 @@ export const deleteExpiredTokens = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Error deleting expired tokens:', error);
+    return false;
+  }
+};
+
+export const deletePasswordResetToken = async (token: string): Promise<boolean> => {
+  try {
+    if (!config.airtable.tables.passwordResetTokens.id) {
+      console.error('Password reset tokens table ID not configured');
+      return false;
+    }
+    
+    const tokensTable = base(config.airtable.tables.passwordResetTokens.id);
+    
+    const records = await tokensTable.select({
+      filterByFormula: `{token} = "${token}"`
+    }).firstPage();
+    
+    if (records && records.length > 0) {
+      await tokensTable.destroy([records[0].id]);
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error deleting password reset token:', error);
     return false;
   }
 };

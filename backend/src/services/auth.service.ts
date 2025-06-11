@@ -9,7 +9,7 @@ import {
   updateUserPassword,
   createPasswordResetToken,
   getPasswordResetToken,
-  markTokenAsUsed
+  deletePasswordResetToken
 } from './airtable.service';
 import { sendPasswordResetEmail } from './email.service';
 
@@ -110,7 +110,7 @@ export const confirmPasswordReset = async (token: string, newPassword: string): 
       return false;
     }
 
-    await markTokenAsUsed(token);
+    await deletePasswordResetToken(token);
 
     return true;
   } catch (error) {
