@@ -1,5 +1,6 @@
-import mailchimp from '@mailchimp/mailchimp_transactional';
+import mailchimp from '@mailchimp/mailchimp_transactional'
 import config from '../config/config';
+import { AxiosError } from 'axios';
 
 const client = mailchimp(config.mandrillApiKey);
 
@@ -11,7 +12,7 @@ export const sendPasswordResetEmail = async (
     const resetLink = `${config.frontendUrl}/reset-password/${resetToken}`;
     
     const message = {
-      to: [{ email, type: 'to' }],
+      to: [{ email }],
       from_email: 'noreply@knodstokenwallet.labtekdev.site',
       from_name: 'Knods Token Wallet',
       subject: 'Reset Your Password',
@@ -35,8 +36,19 @@ export const sendPasswordResetEmail = async (
     };
 
     const response = await client.messages.send({ message });
+    console.log(response)
     
-    return response[0].status === 'sent' || response[0].status === 'queued';
+    if(response instanceof AxiosError){
+      console.error('Error sending password reset email:', response);
+      return false;
+    }
+
+    if(response[0].status !== 'sent' && response[0].status !== 'queued'){
+      console.error('Error sending password reset email:', response[0]);
+      return false;
+    }
+    
+    return true;
   } catch (error) {
     console.error('Error sending password reset email:', error);
     return false;
