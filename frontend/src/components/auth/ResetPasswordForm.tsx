@@ -98,7 +98,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token }) => {
             placeholder="••••••••"
             {...register('confirmPassword', { 
               required: 'Please confirm your new password',
-              validate: value => value === password || 'Passwords do not match'
+              validate: (value: string) => value === password || 'Passwords do not match'
             })}
           />
           {errors.confirmPassword && (
